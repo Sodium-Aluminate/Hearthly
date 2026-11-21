@@ -7,21 +7,6 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=IM+Fell+English:ital@0;1&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
-<script>
-/* 尽早判定语言，避免首屏先闪出另一种语言 */
-(function(){
-  try{
-    var q = new URLSearchParams(location.search).get('lang');
-    var s = localStorage.getItem('hearthly-lang');
-    var langs = navigator.languages || [navigator.language || ''];
-    var pref = (q === 'zh' || q === 'en') ? q
-             : ((s === 'zh' || s === 'en') ? s
-             : (langs.some(function(l){ return /^zh/i.test(l); }) ? 'zh' : 'en'));
-    document.documentElement.lang = pref === 'zh' ? 'zh-CN' : 'en';
-    document.documentElement.dataset.lang = pref;
-  }catch(e){}
-})();
-</script>
 <style>
 
 :root{
@@ -289,43 +274,7 @@ html[lang="zh-CN"] h2{letter-spacing:-.01em}
 html[lang="zh-CN"] h1 em{letter-spacing:0}
 </style>
 </head>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Hearthly — The smart home that cares</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=IM+Fell+English:ital@0;1&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
-<script>
-/* 尽早判定语言，避免首屏先闪出另一种语言 */
-(function(){
-  try{
-    var q = new URLSearchParams(location.search).get('lang');
-    var s = localStorage.getItem('hearthly-lang');
-    var langs = navigator.languages || [navigator.language || ''];
-    var pref = (q === 'zh' || q === 'en') ? q
-             : ((s === 'zh' || s === 'en') ? s
-             : (langs.some(function(l){ return /^zh/i.test(l); }) ? 'zh' : 'en'));
-    document.documentElement.lang = pref === 'zh' ? 'zh-CN' : 'en';
-    document.documentElement.dataset.lang = pref;
-  }catch(e){}
-})();
-</script>
-<style>
-__CSS__
-/* ---------- i18n ---------- */
-#lang{position:fixed;left:18px;bottom:64px;z-index:90;font:600 13px var(--sans);padding:9px 14px;border-radius:999px;cursor:pointer;
-  background:var(--card);color:var(--fg);border:1px solid var(--line)}
-html[lang="zh-CN"] body{line-height:1.65}
-html[lang="zh-CN"] h1{line-height:1.16;letter-spacing:-.01em}
-html[lang="zh-CN"] h2{letter-spacing:-.01em}
-html[lang="zh-CN"] h1 em{letter-spacing:0}
-</style>
-</head>
 <body>
-
 <canvas id="noise" width="320" height="180"></canvas>
 <div id="vig"></div><div id="scan"></div>
 <div id="whisper"></div>
@@ -682,7 +631,8 @@ html[lang="zh-CN"] h1 em{letter-spacing:0}
 
 <script>
 /* =================================================================
-   I18N — 英文为源文案，中文为译文；按浏览器语言自动选择
+   I18N — English is the source copy, Chinese the translation.
+   The active language follows the visitor's preferred language.
    ================================================================= */
 const STORE_KEY = 'hearthly-lang';
 
@@ -1138,7 +1088,7 @@ const DICT = {
   }
 };
 
-/* ---- 语言检测 / 切换 ---- */
+/* ---- Language detection / switching ---- */
 function detectLang(){
   const q = new URLSearchParams(location.search).get('lang');
   if(q === 'zh' || q === 'en') return q;
@@ -1146,8 +1096,8 @@ function detectLang(){
     const saved = localStorage.getItem(STORE_KEY);
     if(saved === 'zh' || saved === 'en') return saved;
   }catch(e){}
-  const langs = navigator.languages || [navigator.language || ''];
-  return langs.some(l => /^zh/i.test(l)) ? 'zh' : 'en';
+  const primary = (navigator.languages && navigator.languages[0]) || navigator.language || '';
+  return /^zh/i.test(primary) ? 'zh' : 'en';
 }
 
 let LANG = detectLang();
@@ -1191,7 +1141,7 @@ let D = 0, inside = false;   // D = "dread", 0..1, from per-section data-d
 const ua = navigator.userAgent;
 const DEV_KEY = /iPad/.test(ua)||(/Mac/.test(ua)&&navigator.maxTouchPoints>1)?'dev.ipad':/iPhone/.test(ua)?'dev.iphone':/Android/.test(ua)?'dev.android':/Mac/.test(ua)?'dev.mac':/Windows/.test(ua)?'dev.windows':/Linux/.test(ua)?'dev.linux':'dev.screen';
 
-/* ================= 文本装配 ================= */
+/* ================= TEXT BINDING ================= */
 const langBtn = $('#lang');
 const sBtn = $('#sound');
 const term = $('#term');
@@ -1243,7 +1193,7 @@ function buildSwaps(){
   });
 }
 
-/* 静态文本 */
+/* Static copy */
 function applyStatic(){
   document.documentElement.lang = LANG === 'zh' ? 'zh-CN' : 'en';
   $$('[data-i18n]').forEach(el => { el.innerHTML = t(el.dataset.i18n); });
@@ -1252,7 +1202,7 @@ function applyStatic(){
   $$('[data-i18n-value]').forEach(el => { el.value = t(el.dataset.i18nValue); });
 }
 
-/* 动态文本 */
+/* Dynamic copy */
 function syncSoundLabel(){
   if(soundFailed) sBtn.textContent = t('sound.unavailable');
   else sBtn.textContent = audio ? t('sound.on') : t('sound.off');
@@ -1502,26 +1452,26 @@ function updateAudio(){
   droneG.gain.setTargetAtTime(Math.pow(clamp((p-.25)/.75),1.6)*.22, now, .8);
   noiseG.gain.setTargetAtTime(clamp(p-.55)*.09, now, .8);
 }
-function thump(tm,v){ const o=AC.createOscillator(), g=AC.createGain(); o.type='sine'; o.frequency.setValueAtTime(70,tm); o.frequency.exponentialRampToValueAtTime(38,tm+.18);
-  g.gain.setValueAtTime(0,tm); g.gain.linearRampToValueAtTime(v,tm+.01); g.gain.exponentialRampToValueAtTime(.001,tm+.25); o.connect(g); g.connect(master); o.start(tm); o.stop(tm+.3); }
+function thump(t,v){ const o=AC.createOscillator(), g=AC.createGain(); o.type='sine'; o.frequency.setValueAtTime(70,t); o.frequency.exponentialRampToValueAtTime(38,t+.18);
+  g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(v,t+.01); g.gain.exponentialRampToValueAtTime(.001,t+.25); o.connect(g); g.connect(master); o.start(t); o.stop(t+.3); }
 setInterval(()=>{ if(audio && D>.84){ const now=AC.currentTime, v=inside?.35:.2+D*.2; thump(now,v); thump(now+.22,v*.7);} }, 850);
 function whisperSound(){
   const src=AC.createBufferSource(); src.buffer=nbuf; const f=AC.createBiquadFilter(); f.type='bandpass'; f.frequency.value=2600; f.Q.value=3;
-  const g=AC.createGain(), tm=AC.currentTime; g.gain.setValueAtTime(0,tm); g.gain.linearRampToValueAtTime(.12,tm+.4); g.gain.linearRampToValueAtTime(0,tm+1.6);
-  src.connect(f); f.connect(g); g.connect(master); src.start(tm); src.stop(tm+1.7);
+  const g=AC.createGain(), t=AC.currentTime; g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(.12,t+.4); g.gain.linearRampToValueAtTime(0,t+1.6);
+  src.connect(f); f.connect(g); g.connect(master); src.start(t); src.stop(t+1.7);
 }
 function scream(){
   if(!audio) return;
-  const tm=AC.currentTime;
+  const t=AC.currentTime;
   const ws=AC.createWaveShaper(), curve=new Float32Array(1024); for(let k=0;k<1024;k++){curve[k]=Math.tanh((k/512-1)*12);} ws.curve=curve;
-  const g=AC.createGain(); g.gain.setValueAtTime(0,tm); g.gain.linearRampToValueAtTime(.55,tm+.02); g.gain.exponentialRampToValueAtTime(.001,tm+1.6);
+  const g=AC.createGain(); g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(.55,t+.02); g.gain.exponentialRampToValueAtTime(.001,t+1.6);
   ws.connect(g); g.connect(master);
-  [587,622,880,1244].forEach(f=>{const o=AC.createOscillator(); o.type='sawtooth'; o.frequency.setValueAtTime(f,tm); o.frequency.exponentialRampToValueAtTime(f*.45,tm+1.4); o.connect(ws); o.start(tm); o.stop(tm+1.6);});
-  const n=AC.createBufferSource(); n.buffer=nbuf; const ng=AC.createGain(); ng.gain.setValueAtTime(.6,tm); ng.gain.exponentialRampToValueAtTime(.001,tm+1.2);
-  n.connect(ng); ng.connect(master); n.start(tm); n.stop(tm+1.3);
+  [587,622,880,1244].forEach(f=>{const o=AC.createOscillator(); o.type='sawtooth'; o.frequency.setValueAtTime(f,t); o.frequency.exponentialRampToValueAtTime(f*.45,t+1.4); o.connect(ws); o.start(t); o.stop(t+1.6);});
+  const n=AC.createBufferSource(); n.buffer=nbuf; const ng=AC.createGain(); ng.gain.setValueAtTime(.6,t); ng.gain.exponentialRampToValueAtTime(.001,t+1.2);
+  n.connect(ng); ng.connect(master); n.start(t); n.stop(t+1.3);
 }
 
-/* ================= 启动 ================= */
+/* ================= BOOT ================= */
 (function checkDict(){
   const miss = Object.keys(DICT.en).filter(k => DICT.zh[k] === undefined)
     .concat(Object.keys(DICT.zh).filter(k => DICT.en[k] === undefined));
